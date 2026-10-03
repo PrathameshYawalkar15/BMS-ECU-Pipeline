@@ -1,0 +1,28 @@
+[
+  {
+    "req_id": "SYS.2-BMS-001",
+    "asil": "ASIL-D",
+    "title": "Cell Over-Temperature Isolation",
+    "description": "The BMS ECU shall open main contactors and set fault code ERR_OVERTEMP_CRITICAL if cell temperature exceeds 60.0 degrees C.",
+    "parameters": {
+      "metric": "temperature",
+      "threshold_value": 60.0,
+      "comparison": ">",
+      "expected_fault": "ERR_OVERTEMP_CRITICAL",
+      "expected_contactor_state": false
+    }
+  },
+  {
+    "req_id": "SYS.2-BMS-002",
+    "asil": "ASIL-C",
+    "title": "Cell Over-Voltage Protection",
+    "description": "The BMS ECU shall open main contactors and set fault code ERR_OVERVOLTAGE if cell voltage exceeds 4.25 Volts.",
+    "parameters": {
+      "metric": "voltage",
+      "threshold_value": 4.25,
+      "comparison": ">",
+      "expected_fault": "ERR_OVERVOLTAGE",
+      "expected_contactor_state": false
+    }
+  }
+]
