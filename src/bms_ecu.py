@@ -17,11 +17,11 @@ class BatteryManagementECU:
         self._evaluate_safety_rules()
 
     def _evaluate_safety_rules(self):
-        # SYS.2-BMS-001: Over-Temperature Isolation
+        # ⚠️ INTENTIONAL BUG: ECU fails to trip fault state on over-temperature
         if self.temperature > 60.0:
-            self.state = "FAULT"
-            self.contactor_closed = False
-            self.fault_code = "ERR_OVERTEMP_CRITICAL"
+            self.state = "NORMAL"                # Should be "FAULT"
+            self.contactor_closed = True         # Should be False
+            self.fault_code = "NONE"             # Should be "ERR_OVERTEMP_CRITICAL"
             return
 
         # SYS.2-BMS-002: Over-Voltage Protection
