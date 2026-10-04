@@ -1,0 +1,14 @@
+services:
+  bms-agent-pipeline:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bms_ecu_agent_pipeline
+    env_file:
+      - .env
+    volumes:
+      # Mount tests/ and reports/ to persist generated test files and HTML reports on host
+      - ./tests:/app/tests
+      - ./reports:/app/reports
+      - ./chroma_db:/app/chroma_db
+    restart: "no"
