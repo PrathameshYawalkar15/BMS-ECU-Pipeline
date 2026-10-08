@@ -24,5 +24,18 @@
       "expected_fault": "ERR_OVERVOLTAGE",
       "expected_contactor_state": false
     }
+  },
+  {
+  "req_id": "SYS.2-BMS-003",
+  "asil": "ASIL-D",
+  "title": "Cell Under-Voltage Protection",
+  "description": "The BMS ECU shall open main contactors and set fault code ERR_UNDERVOLTAGE if cell voltage drops below 2.50 Volts.",
+  "parameters": {
+    "metric": "voltage",
+    "threshold_value": 2.50,
+    "comparison": "<",
+    "expected_fault": "ERR_UNDERVOLTAGE",
+    "expected_contactor_state": false
   }
+}
 ]

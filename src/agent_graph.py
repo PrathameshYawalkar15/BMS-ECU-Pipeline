@@ -3,8 +3,9 @@ import re
 import json
 import sys
 import subprocess
+import argparse
 from datetime import datetime
-from typing import TypedDict, Annotated, Sequence, Literal
+from typing import TypedDict, Annotated, Sequence, Literal, List
 from dotenv import load_dotenv
 
 from langchain_core.messages import BaseMessage, SystemMessage, HumanMessage, ToolMessage
@@ -14,14 +15,12 @@ from langgraph.graph import StateGraph, END
 from langgraph.graph.message import add_messages
 import chromadb
 
-
-EXECUTION_TIMESTAMP = datetime.now().strftime("%Y%m%d_%H%M%S")
-RUN_REPORT_PATH = f"reports/report_{EXECUTION_TIMESTAMP}.html"
-LATEST_REPORT_PATH = "reports/latest_report.html"
-
-
 # Load environment variables
 load_dotenv()
+
+EXECUTION_TIMESTAMP = datetime.now().strftime("%Y%m%d_%H%M%S")
+PASSED_REPORT_PATH = f"reports/passed_report_{EXECUTION_TIMESTAMP}.html"
+FAILED_REPORT_PATH = f"reports/failed_report_{EXECUTION_TIMESTAMP}.html"
 
 # --- 1. Tools for Agentic RAG ---
 
@@ -40,8 +39,8 @@ def query_chromadb_requirement(req_id: str) -> str:
 
 @tool
 def execute_pytest_suite(test_code: str, req_id: str = "SYS_2_BMS_001") -> str:
-    """Saves generated test code to a versioned requirement test file (e.g., tests/test_sys_2_bms_001.py),
-    executes the FULL PyTest suite across all accumulated test files, and updates the run report."""
+    """Saves generated test code to a versioned requirement test file (e.g., tests/test_sys_2_bms_001.py)
+    and executes PyTest for this specific requirement asset."""
     
     os.makedirs("tests", exist_ok=True)
     os.makedirs("reports", exist_ok=True)
@@ -52,26 +51,24 @@ def execute_pytest_suite(test_code: str, req_id: str = "SYS_2_BMS_001") -> str:
     elif "```" in clean_code:
         clean_code = clean_code.split("```")[1].split("```")[0].strip()
 
-    # Guardrail: Must import and test ECU
+    # Reject invalid code structure before execution
     if "BatteryManagementECU" not in clean_code or "open(" in clean_code or "inspect." in clean_code:
         return json.dumps({
             "passed": False,
             "stdout": "",
-            "stderr": "REJECTED: Test code must instantiate and test `BatteryManagementECU` without inspecting source files.",
-            "is_assertion_failure": False
+            "stderr": "REJECTED: Code must instantiate `BatteryManagementECU` without inspecting source files.",
+            "is_system_error": True
         })
 
-    # Sanitize req_id to form a valid filename (e.g., SYS.2-BMS-001 -> test_sys_2_bms_001.py)
     safe_req_name = re.sub(r'[^a-zA-Z0-9]', '_', req_id).lower()
     target_test_file = f"tests/test_{safe_req_name}.py"
 
-    # Save/preserve the test file on disk
     with open(target_test_file, "w", encoding="utf-8") as f:
         f.write(clean_code)
 
-    print(f"[PIPELINE] Saved requirement test asset to: {target_test_file}")
+    print(f"[PIPELINE] Saved test asset: {target_test_file}")
 
-    # Run PyTest on the ENTIRE `tests/` directory to ensure full regression suite execution
+    # Run PyTest on the current target requirement file
     result = subprocess.run(
         [
             sys.executable,
@@ -81,37 +78,22 @@ def execute_pytest_suite(test_code: str, req_id: str = "SYS_2_BMS_001") -> str:
             "-rP",
             "-o", "pythonpath=.",
             "-o", "log_cli=true",
-            f"--html={RUN_REPORT_PATH}",
-            "--self-contained-html",
-            "tests/"
+            target_test_file
         ],
         capture_output=True,
         text=True
     )
 
-
-    # Mirror to latest_report.html pointer
-    if os.path.exists(RUN_REPORT_PATH):
-        with open(RUN_REPORT_PATH, "r", encoding="utf-8") as src_f:
-            content = src_f.read()
-        with open(LATEST_REPORT_PATH, "w", encoding="utf-8") as dst_f:
-            dst_f.write(content)
-
-    is_assertion_fail = "AssertionError" in result.stdout or "AssertionError" in result.stderr
-
     return json.dumps({
         "passed": result.returncode == 0,
         "stdout": result.stdout,
         "stderr": result.stderr,
-        "report_path": RUN_REPORT_PATH,
         "target_file": target_test_file,
-        "is_assertion_failure": is_assertion_fail
+        "is_system_error": False
     })
 
 
 tools = [query_chromadb_requirement, execute_pytest_suite]
-
-# --- 2. OpenRouter Model Initialization ---
 
 # --- 2. OpenRouter Model Setup ---
 
@@ -119,7 +101,6 @@ api_key = os.getenv("OPENROUTER_API_KEY")
 if not api_key:
     raise ValueError("OPENROUTER_API_KEY is missing in environment or .env file.")
 
-# Use OpenRouter's free router slug which auto-detects tool-calling capabilities
 llm = ChatOpenAI(
     model="openrouter/free",
     openai_api_key=api_key,
@@ -132,56 +113,49 @@ llm = ChatOpenAI(
 class AgenticRAGState(TypedDict):
     messages: Annotated[Sequence[BaseMessage], add_messages]
     retry_count: int
+    requirement_id: str
+    is_system_error: bool
+    test_passed: bool
 
 # --- 4. Node Definitions ---
 
 SYSTEM_PROMPT = """You are an Autonomous AI QA Engineering Agent for an EV Battery Management System (BMS).
-Your goal is to verify ASPICE functional safety requirements by generating permanent, requirement-specific PyTest files and executing them against a simulated ECU.
+Your goal is to verify ASPICE functional safety requirements by generating permanent PyTest files and executing them against a simulated ECU.
 
 WORKFLOW:
-1. Call `query_chromadb_requirement(req_id)` to retrieve requirement parameters (e.g., threshold values, expected states).
+1. Call `query_chromadb_requirement(req_id)` to retrieve requirement parameters.
 2. Generate a dedicated PyTest function targeting that requirement.
-3. Call `execute_pytest_suite(test_code, req_id)` to save the test module and execute the full regression test suite.
-
-FORBIDDEN PATTERNS:
-- DO NOT read, inspect, or print the source code of `bms_ecu.py` or `conftest.py`.
-- DO NOT call or import `query_chromadb_requirement` inside the generated test file. It is an agent tool, NOT a test helper.
-- DO NOT generate temporary or overwrite-only test files. Every test file will be permanently saved to disk for ASPICE regression auditability.
+3. Call `execute_pytest_suite(test_code, req_id)` to save and run the test.
 
 REQUIRED TEST TEMPLATE:
-Your generated test code MUST follow this structure:
-
 ```python
 from src.bms_ecu import BatteryManagementECU
 
 def test_sys_2_bms_001_overtemperature_isolation():
-    # 1. Instantiate ECU
     ecu = BatteryManagementECU()
-    
-    # 2. Update sensor inputs (using values retrieved from ChromaDB)
     ecu.update_sensors(temperature=65.0)
-    
-    # 3. Print telemetry for log capture
     print(f"\\n[TELEMETRY] State: {ecu.state} | Fault: {ecu.fault_code} | Contactor: {ecu.contactor_closed}")
-    
-    # 4. Assert ground-truth parameters retrieved from ChromaDB
-    assert ecu.state == "FAULT", f"Expected state FAULT, got {ecu.state}"
-    assert ecu.contactor_closed is False, f"Expected contactor OPEN (False), got {ecu.contactor_closed}"
-    assert ecu.fault_code == "ERR_OVERTEMP_CRITICAL", f"Expected ERR_OVERTEMP_CRITICAL, got {ecu.fault_code}"
-    """
+    assert ecu.state == "FAULT"
+    assert ecu.contactor_closed is False
+    assert ecu.fault_code == "ERR_OVERTEMP_CRITICAL"
+```"""
 
 def agent_reasoning_node(state: AgenticRAGState) -> AgenticRAGState:
-    messages = state["messages"]
-    if not any(isinstance(m, SystemMessage) for m in messages):
-        messages = [SystemMessage(content=SYSTEM_PROMPT)] + list(messages)
-
-    response = llm.invoke(messages)
-    return {"messages": [response], "retry_count": state.get("retry_count", 0)}
+    response = llm.invoke(state["messages"])
+    return {
+        "messages": [response],
+        "retry_count": state.get("retry_count", 0),
+        "requirement_id": state.get("requirement_id", ""),
+        "is_system_error": state.get("is_system_error", False),
+        "test_passed": state.get("test_passed", False)
+    }
 
 def tool_execution_node(state: AgenticRAGState) -> AgenticRAGState:
     last_message = state["messages"][-1]
     tool_outputs = []
     retry_inc = 0
+    is_sys_err = state.get("is_system_error", False)
+    test_passed = False
 
     for tool_call in last_message.tool_calls:
         tool_name = tool_call["name"]
@@ -192,6 +166,14 @@ def tool_execution_node(state: AgenticRAGState) -> AgenticRAGState:
         elif tool_name == "execute_pytest_suite":
             res = execute_pytest_suite.invoke(tool_args)
             retry_inc = 1
+            
+            try:
+                res_data = json.loads(res)
+                test_passed = res_data.get("passed", False)
+                if res_data.get("is_system_error"):
+                    is_sys_err = True
+            except Exception:
+                pass
         else:
             res = f"Tool '{tool_name}' not recognized."
 
@@ -199,17 +181,25 @@ def tool_execution_node(state: AgenticRAGState) -> AgenticRAGState:
 
     return {
         "messages": tool_outputs,
-        "retry_count": state.get("retry_count", 0) + retry_inc
+        "retry_count": state.get("retry_count", 0) + retry_inc,
+        "requirement_id": state.get("requirement_id", ""),
+        "is_system_error": is_sys_err,
+        "test_passed": test_passed
     }
 
 # --- 5. Conditional Routing ---
 
 def should_continue(state: AgenticRAGState) -> Literal["tools", "end"]:
+    # Halts graph loop only if system API breaks (not for standard assertion failures)
+    if state.get("is_system_error", False):
+        print("[CIRCUIT BREAKER] System error detected. Halting requirement loop.")
+        return "end"
+
     last_message = state["messages"][-1]
 
     if hasattr(last_message, "tool_calls") and last_message.tool_calls:
         if state.get("retry_count", 0) >= 3:
-            print("\n[Agentic RAG] Maximum retries (3) reached. Halting loop.")
+            print("\n[Agentic RAG] Maximum retries (3) reached.")
             return "end"
         return "tools"
 
@@ -219,28 +209,135 @@ def should_continue(state: AgenticRAGState) -> Literal["tools", "end"]:
 
 def build_agentic_rag_graph():
     workflow = StateGraph(AgenticRAGState)
-
     workflow.add_node("agent", agent_reasoning_node)
     workflow.add_node("tools", tool_execution_node)
 
     workflow.set_entry_point("agent")
-
     workflow.add_conditional_edges("agent", should_continue, {"tools": "tools", "end": END})
     workflow.add_edge("tools", "agent")
 
     return workflow.compile()
 
-if __name__ == "__main__":
+# --- 7. Dual Report Generator ---
+
+def generate_partitioned_reports(results_map: dict):
+    """Executes PyTest separately over Passed vs. Failed assets to create dedicated QA HTML reports."""
+    passed_files = [res["file"] for res in results_map.values() if res["status"] == "PASSED" and res["file"]]
+    failed_files = [res["file"] for res in results_map.values() if res["status"] == "FAILED" and res["file"]]
+
+    os.makedirs("reports", exist_ok=True)
+
+    print("\n==================================================")
+    print("        GENERATING PARTITIONED QA REPORTS         ")
+    print("==================================================")
+
+    # 1. Passed Tests HTML Report
+    if passed_files:
+        print(f"📊 Generating Passed Suite Report ({len(passed_files)} tests)...")
+        subprocess.run([
+            sys.executable, "-m", "pytest", "-v", "-o", "pythonpath=.",
+            f"--html={PASSED_REPORT_PATH}", "--self-contained-html", *passed_files
+        ], capture_output=True)
+        print(f"   --> Saved: {PASSED_REPORT_PATH}")
+    else:
+        print("ℹ️ No passed test cases to include in passed report.")
+
+    # 2. Failed Tests HTML Report
+    if failed_files:
+        print(f"🚨 Generating Failed Suite Report ({len(failed_files)} tests)...")
+        subprocess.run([
+            sys.executable, "-m", "pytest", "-v", "-o", "pythonpath=.",
+            f"--html={FAILED_REPORT_PATH}", "--self-contained-html", *failed_files
+        ], capture_output=True)
+        print(f"   --> Saved: {FAILED_REPORT_PATH}")
+    else:
+        print("🎉 No failed test cases! Failed report omitted.")
+
+    print("==================================================\n")
+
+# --- 8. Batch Pipeline Runner ---
+
+def get_all_chromadb_requirement_ids() -> List[str]:
+    client = chromadb.PersistentClient(path="./bms_vector_store")
+    try:
+        collection = client.get_collection("aspice_requirements")
+        return collection.get()["ids"]
+    except Exception as e:
+        print(f"[CHROMADB ERROR] Could not fetch requirement IDs: {e}")
+        return []
+
+def run_batch_pipeline(requirement_ids: List[str]):
     app = build_agentic_rag_graph()
+    
+    print(f"\n==================================================")
+    print(f" STARTING FULL BATCH TESTING: {len(requirement_ids)} REQUIREMENTS")
+    print(f" Target Requirements: {', '.join(requirement_ids)}")
+    print(f"==================================================\n")
 
-    user_goal = "Test ASPICE requirement SYS.2-BMS-001 by retrieving its parameters from ChromaDB and executing PyTest against the BMS ECU."
+    summary_results = {}
 
-    initial_state = {
-        "messages": [HumanMessage(content=user_goal)],
-        "retry_count": 0
-    }
+    for req_id in requirement_ids:
+        print(f"\n>>> [PROCESSING REQUIREMENT]: {req_id} <<<")
+        
+        user_goal = f"Test ASPICE requirement {req_id} by retrieving parameters from ChromaDB and executing PyTest."
+        
+        initial_state = {
+            "messages": [
+                SystemMessage(content=SYSTEM_PROMPT),
+                HumanMessage(content=user_goal)
+            ],
+            "retry_count": 0,
+            "requirement_id": req_id,
+            "is_system_error": False,
+            "test_passed": False
+        }
 
-    print("\n🚀 Starting Agentic RAG Pipeline Execution...\n")
-    for event in app.stream(initial_state):
-        for node, output in event.items():
-            print(f"--- Node Completed: {node} ---")
+        safe_req_name = re.sub(r'[^a-zA-Z0-9]', '_', req_id).lower()
+        test_file = f"tests/test_{safe_req_name}.py"
+
+        try:
+            final_state = initial_state
+            for event in app.stream(initial_state):
+                for node, output in event.items():
+                    print(f"--- Node Completed: {node} ---")
+                    final_state = output
+
+            if final_state.get("test_passed"):
+                summary_results[req_id] = {"status": "PASSED", "file": test_file}
+                print(f"✅ Requirement {req_id}: PASSED")
+            else:
+                summary_results[req_id] = {"status": "FAILED", "file": test_file}
+                print(f"❌ Requirement {req_id}: FAILED (Logged for analysis)")
+
+        except Exception as e:
+            summary_results[req_id] = {"status": "ERROR", "file": None}
+            print(f"⚠️ Exception processing {req_id}: {e}")
+
+    # Generate Partitioned HTML Reports for QA Analysis
+    generate_partitioned_reports(summary_results)
+
+    # Print Terminal Summary
+    print("==================================================")
+    print("           BATCH EXECUTION SUMMARY")
+    print("==================================================")
+    for req, res in summary_results.items():
+        status_icon = "✅" if res['status'] == "PASSED" else "❌"
+        print(f"  {status_icon} {req}: {res['status']}")
+    print("==================================================\n")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Autonomous EV BMS QA Verification Pipeline")
+    parser.add_argument("--reqs", nargs="+", help="Specify requirement IDs to run.")
+    args = parser.parse_args()
+
+    if args.reqs:
+        target_requirements = args.reqs
+    else:
+        target_requirements = get_all_chromadb_requirement_ids()
+
+    if not target_requirements:
+        print("❌ Error: No requirements found to execute.")
+        sys.exit(1)
+
+    run_batch_pipeline(target_requirements)
