@@ -1,0 +1,45 @@
+name: ASPICE BMS QA Pipeline
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  verify-bms-software:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Ingest Requirements into ChromaDB
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: |
+          python src/ingest_requirements.py
+
+      - name: Execute Autonomous Agent QA Pipeline
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: |
+          python src/agent_graph.py
+
+      - name: Archive Test Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bms-qa-html-reports
+          path: reports/

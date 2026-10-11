@@ -1,5 +1,7 @@
 # Autonomous ASPICE-Compliant QA Pipeline for EV Battery Management Systems (BMS)
 
+[![ASPICE BMS QA Pipeline](https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPOSITORY_NAME/actions/workflows/pipeline.yml/badge.svg)](https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPOSITORY_NAME/actions/workflows/pipeline.yml)
+
 [![ASPICE v3.1 Compliant](https://img.shields.io/badge/ASPICE-SYS.2%20%7C%20SWE.4-blue.svg)](https://www.automotive-spice.com/)
 [![Functional Safety](https://img.shields.io/badge/ISO%2026262-ASIL--D%20Ready-red.svg)](https://www.iso.org/standard/68383.html)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11+-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
