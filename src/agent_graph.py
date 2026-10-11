@@ -101,6 +101,9 @@ api_key = os.getenv("OPENROUTER_API_KEY")
 if not api_key:
     raise ValueError("OPENROUTER_API_KEY is missing in environment or .env file.")
 
+os.environ["OPENROUTER_API_KEY"] = api_key
+os.environ["OPENAI_API_KEY"] = api_key  # Fallback for langchain-openai internals
+
 llm = ChatOpenAI(
     model="openrouter/free",
     openai_api_key=api_key,
