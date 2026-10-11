@@ -41,11 +41,11 @@ def ingest_requirements():
     embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
     vectorstore = Chroma.from_documents(
-        documents=documents,
-        embedding=embeddings,
-        persist_directory=os.path.join(base_dir, "chroma_db")
-    )
-    print(f"Successfully ingested {len(documents)} requirements locally into ChromaDB!")
+    documents=documents,
+    embedding=embeddings,
+    collection_name="aspice_requirements",
+    persist_directory=os.path.join(base_dir, "chroma_db")
+)
 
 if __name__ == "__main__":
     ingest_requirements()
