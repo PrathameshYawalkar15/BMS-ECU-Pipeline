@@ -266,7 +266,10 @@ def generate_partitioned_reports(results_map: dict):
 # --- 8. Batch Pipeline Runner ---
 
 def get_all_chromadb_requirement_ids() -> List[str]:
-    client = chromadb.PersistentClient(path="./bms_vector_store")
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    persist_dir = os.path.join(base_dir, "chroma_db")
+    
+    client = chromadb.PersistentClient(path=persist_dir)
     try:
         collection = client.get_collection("aspice_requirements")
         return collection.get()["ids"]
