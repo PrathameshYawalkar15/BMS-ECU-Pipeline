@@ -27,7 +27,12 @@ FAILED_REPORT_PATH = f"reports/failed_report_{EXECUTION_TIMESTAMP}.html"
 @tool
 def query_chromadb_requirement(req_id: str) -> str:
     """Queries ChromaDB vector database for ASPICE safety limits, metrics, and thresholds by Requirement ID (e.g., 'SYS.2-BMS-001')."""
-    client = chromadb.PersistentClient(path="./bms_vector_store")
+    
+    # ⚡ Use absolute path pointing to 'chroma_db' (matching your ingestion script)
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    persist_dir = os.path.join(base_dir, "chroma_db")
+    
+    client = chromadb.PersistentClient(path=persist_dir)
     try:
         collection = client.get_collection("aspice_requirements")
         results = collection.get(ids=[req_id])
