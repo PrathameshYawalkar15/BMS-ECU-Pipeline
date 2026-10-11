@@ -5,15 +5,16 @@ from langchain_core.documents import Document
 from langchain_huggingface import HuggingFaceEmbeddings
 
 def ingest_requirements():
-    # Dynamically find the project root and point to aspice_requirements.json
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     json_path = os.path.join(base_dir, "aspice_requirements.json")
 
+    print(f"Looking for requirements at: {json_path}")
     if not os.path.exists(json_path):
         raise FileNotFoundError(f"Could not find requirements file at {json_path}")
 
     with open(json_path, "r", encoding="utf-8") as f:
         requirements = json.load(f)
+    print(f"Loaded {len(requirements)} requirements from JSON.")
 
     documents = []
     for req in requirements:
@@ -36,16 +37,18 @@ def ingest_requirements():
         
         documents.append(Document(page_content=content, metadata=metadata))
 
-    # Use local Hugging Face embeddings (Runs 100% offline, zero API cost)
-    print("Loading local Hugging Face embedding model (all-MiniLM-L6-v2)...")
+    print("Initializing Hugging Face embedding model (all-MiniLM-L6-v2)...")
     embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
+    print("Generating embeddings and writing to ChromaDB collection [aspice_requirements]...")
     vectorstore = Chroma.from_documents(
-    documents=documents,
-    embedding=embeddings,
-    collection_name="aspice_requirements",
-    persist_directory=os.path.join(base_dir, "chroma_db")
-)
+        documents=documents,
+        embedding=embeddings,
+        collection_name="aspice_requirements",
+        persist_directory=os.path.join(base_dir, "chroma_db")
+    )
+    
+    print(f"Successfully ingested {len(documents)} requirements into ChromaDB!")
 
 if __name__ == "__main__":
     ingest_requirements()
