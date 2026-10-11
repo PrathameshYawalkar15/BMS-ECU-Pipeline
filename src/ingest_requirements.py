@@ -1,36 +1,51 @@
 import json
-import hashlib
-import chromadb
+import os
+from langchain_chroma import Chroma
+from langchain_core.documents import Document
+from langchain_huggingface import HuggingFaceEmbeddings
 
-def ingest_requirements(file_path: str = "aspice_requirements.json", db_path: str = "./bms_vector_store"):
-    client = chromadb.PersistentClient(path=db_path)
-    collection = client.get_or_create_collection(
-        name="aspice_requirements",
-        metadata={"description": "ASPICE SYS.2 Functional Requirements for BMS"}
-    )
+def ingest_requirements():
+    # Dynamically find the project root and point to aspice_requirements.json
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    json_path = os.path.join(base_dir, "aspice_requirements.json")
 
-    with open(file_path, "r") as f:
+    if not os.path.exists(json_path):
+        raise FileNotFoundError(f"Could not find requirements file at {json_path}")
+
+    with open(json_path, "r", encoding="utf-8") as f:
         requirements = json.load(f)
 
+    documents = []
     for req in requirements:
-        req_hash = hashlib.md5(json.dumps(req, sort_keys=True).encode()).hexdigest()
-        doc_text = f"{req['req_id']} - {req['title']}: {req['description']}"
-        
-        collection.upsert(
-            ids=[req["req_id"]],
-            documents=[doc_text],
-            metadatas=[{
-                "req_id": req["req_id"],
-                "asil": req["asil"],
-                "content_hash": req_hash,
-                "metric": req["parameters"]["metric"],
-                "threshold_value": req["parameters"]["threshold_value"],
-                "expected_fault": req["parameters"]["expected_fault"],
-                "expected_contactor_state": str(req["parameters"]["expected_contactor_state"])
-            }]
+        params = req.get("parameters", {})
+        content = (
+            f"Requirement ID: {req.get('req_id')}\n"
+            f"Title: {req.get('title')}\n"
+            f"ASIL Rating: {req.get('asil')}\n"
+            f"Description: {req.get('description')}\n"
+            f"Metric: {params.get('metric')}\n"
+            f"Threshold Value: {params.get('threshold_value')}\n"
+            f"Expected Fault Code: {params.get('expected_fault')}"
         )
+        
+        metadata = {
+            "requirement_id": req.get("req_id"),
+            "asil": req.get("asil"),
+            "threshold_metric": params.get("metric"),
+        }
+        
+        documents.append(Document(page_content=content, metadata=metadata))
 
-    print(f"[ChromaDB] Successfully ingested {len(requirements)} requirements into '{db_path}'.")
+    # Use local Hugging Face embeddings (Runs 100% offline, zero API cost)
+    print("Loading local Hugging Face embedding model (all-MiniLM-L6-v2)...")
+    embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+
+    vectorstore = Chroma.from_documents(
+        documents=documents,
+        embedding=embeddings,
+        persist_directory=os.path.join(base_dir, "chroma_db")
+    )
+    print(f"Successfully ingested {len(documents)} requirements locally into ChromaDB!")
 
 if __name__ == "__main__":
     ingest_requirements()

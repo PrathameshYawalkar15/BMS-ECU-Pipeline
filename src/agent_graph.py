@@ -129,12 +129,12 @@ WORKFLOW:
 1. Call `query_chromadb_requirement(req_id)` to retrieve requirement parameters.
 2. Generate a dedicated PyTest function targeting that requirement.
 3. Call `execute_pytest_suite(test_code, req_id)` to save and run the test.
-
+test_sys_2_bms
 REQUIRED TEST TEMPLATE:
 ```python
 from src.bms_ecu import BatteryManagementECU
 
-def test_sys_2_bms_001_overtemperature_isolation():
+def _001_overtemperature_isolation():
     ecu = BatteryManagementECU()
     ecu.update_sensors(temperature=65.0)
     print(f"\\n[TELEMETRY] State: {ecu.state} | Fault: {ecu.fault_code} | Contactor: {ecu.contactor_closed}")

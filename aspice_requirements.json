@@ -26,16 +26,29 @@
     }
   },
   {
-  "req_id": "SYS.2-BMS-003",
-  "asil": "ASIL-D",
-  "title": "Cell Under-Voltage Protection",
-  "description": "The BMS ECU shall open main contactors and set fault code ERR_UNDERVOLTAGE if cell voltage drops below 2.50 Volts.",
-  "parameters": {
-    "metric": "voltage",
-    "threshold_value": 2.50,
-    "comparison": "<",
-    "expected_fault": "ERR_UNDERVOLTAGE",
-    "expected_contactor_state": false
+    "req_id": "SYS.2-BMS-003",
+    "asil": "ASIL-D",
+    "title": "Cell Under-Voltage Protection",
+    "description": "The BMS ECU shall open main contactors and set fault code ERR_UNDERVOLTAGE if cell voltage drops below 2.50 Volts.",
+    "parameters": {
+      "metric": "voltage",
+      "threshold_value": 2.50,
+      "comparison": "<",
+      "expected_fault": "ERR_UNDERVOLTAGE",
+      "expected_contactor_state": false
+    }
+  },
+  {
+    "req_id": "SYS.2-BMS-004",
+    "asil": "ASIL-D",
+    "title": "Thermal Runaway Mitigation under CAN Bus Communication Loss",
+    "description": "The BMS shall isolate the high-voltage main contactors within 50ms and trigger active coolant flooding if cell temperature exceeds 65.0 °C concurrently with a loss of CAN bus heartbeat (communication timeout > 100ms).",
+    "parameters": {
+      "metric": "temperature_and_can_status",
+      "threshold_value": "temp > 65.0 and can_active == False",
+      "comparison": "and",
+      "expected_fault": "ERR_CRITICAL_THERMAL_CAN_FAULT",
+      "expected_contactor_state": false
+    }
   }
-}
 ]
