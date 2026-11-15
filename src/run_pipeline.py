@@ -96,7 +96,7 @@ def run_pipeline():
         file_exists = os.path.exists(test_file_path)
 
         if not is_changed and file_exists:
-            print(f"  ⚡ [{req_id}] Unchanged -> Reusing existing test file.")
+            print(f"  [*] [{req_id}] Unchanged -> Reusing existing test file.")
             test_files_to_execute[req_id] = test_file_path
         else:
             print(f"  🤖 [{req_id}] New or Modified -> Generating test via Qwen2.5-Coder...")

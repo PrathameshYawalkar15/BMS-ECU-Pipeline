@@ -9,6 +9,8 @@ on:
 jobs:
   verify-and-test:
     runs-on: self-hosted
+    env:
+      PYTHONUTF8: "1"
 
     steps:
       - name: Checkout Repository
