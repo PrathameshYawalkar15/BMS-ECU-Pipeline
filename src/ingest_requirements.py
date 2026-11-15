@@ -17,10 +17,14 @@ def ingest_requirements():
     print(f"Loaded {len(requirements)} requirements from JSON.")
 
     documents = []
+    ids = []
     for req in requirements:
+        req_id = req.get('req_id')
+        ids.append(req_id)
+        
         params = req.get("parameters", {})
         content = (
-            f"Requirement ID: {req.get('req_id')}\n"
+            f"Requirement ID: {req_id}\n"
             f"Title: {req.get('title')}\n"
             f"ASIL Rating: {req.get('asil')}\n"
             f"Description: {req.get('description')}\n"
@@ -30,7 +34,7 @@ def ingest_requirements():
         )
         
         metadata = {
-            "requirement_id": req.get("req_id"),
+            "requirement_id": req_id,
             "asil": req.get("asil"),
             "threshold_metric": params.get("metric"),
         }
@@ -44,6 +48,7 @@ def ingest_requirements():
     vectorstore = Chroma.from_documents(
         documents=documents,
         embedding=embeddings,
+        ids=ids,  # Explicitly bind the real requirement IDs as keys
         collection_name="aspice_requirements",
         persist_directory=os.path.join(base_dir, "chroma_db")
     )

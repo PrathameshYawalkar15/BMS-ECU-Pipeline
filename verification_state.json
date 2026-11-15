@@ -1,0 +1,22 @@
+{
+    "SYS.2-BMS-001": {
+        "hash": "2db590104c21bcca17d71b59d49f8b43676b66dc1cb51589318e88a4b6d13d17",
+        "file": "tests/test_sys_2_bms_001.py",
+        "last_updated": "2026-11-15T16:04:46.342561"
+    },
+    "SYS.2-BMS-002": {
+        "hash": "357514ab44971c62e5b3d315ebb6dcdd870f055fed096407930a5d802dde2239",
+        "file": "tests/test_sys_2_bms_002.py",
+        "last_updated": "2026-11-15T16:05:21.012596"
+    },
+    "SYS.2-BMS-003": {
+        "hash": "63bc59c13bbb904ab138da39f5154a2d6d307eff14c8de8b58e736aed7946111",
+        "file": "tests/test_sys_2_bms_003.py",
+        "last_updated": "2026-11-15T16:05:56.060057"
+    },
+    "SYS.2-BMS-004": {
+        "hash": "51ad4b9b56946b193d1a4b40b14b64a5ec646d703a1dfc82f4fef390f1344da1",
+        "file": "tests/test_sys_2_bms_004.py",
+        "last_updated": "2026-11-15T16:06:37.371361"
+    }
+}
