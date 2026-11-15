@@ -1,6 +1,9 @@
 import pytest
 from src.bms_ecu import BatteryManagementECU
 
+
+@pytest.mark.safety_critical
+@pytest.mark.requirement("REQ_BMS_TEMP_001")
 def test_thermal_runaway_mitigation():
     ecu = BatteryManagementECU()
     
