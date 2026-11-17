@@ -10,7 +10,30 @@
       "comparison": ">",
       "expected_fault": "ERR_OVERTEMP_CRITICAL",
       "expected_contactor_state": false
-    }
+    },
+    "scenarios": [
+      {
+        "name": "nominal_safe_temperature",
+        "input_temp": 45.0,
+        "expected_state": "NORMAL",
+        "expected_contactor": true,
+        "expected_fault": null
+      },
+      {
+        "name": "boundary_exact_threshold",
+        "input_temp": 60.0,
+        "expected_state": "NORMAL",
+        "expected_contactor": true,
+        "expected_fault": null
+      },
+      {
+        "name": "fault_over_temperature",
+        "input_temp": 61.0,
+        "expected_state": "FAULT_SHUTDOWN",
+        "expected_contactor": false,
+        "expected_fault": "ERR_OVERTEMP_CRITICAL"
+      }
+    ]
   },
   {
     "req_id": "SYS.2-BMS-002",
@@ -23,7 +46,30 @@
       "comparison": ">",
       "expected_fault": "ERR_OVERVOLTAGE",
       "expected_contactor_state": false
-    }
+    },
+    "scenarios": [
+      {
+        "name": "nominal_safe_voltage",
+        "input_voltage": 3.80,
+        "expected_state": "NORMAL",
+        "expected_contactor": true,
+        "expected_fault": null
+      },
+      {
+        "name": "boundary_exact_threshold",
+        "input_voltage": 4.25,
+        "expected_state": "NORMAL",
+        "expected_contactor": true,
+        "expected_fault": null
+      },
+      {
+        "name": "fault_over_voltage",
+        "input_voltage": 4.30,
+        "expected_state": "FAULT",
+        "expected_contactor": false,
+        "expected_fault": "ERR_OVERVOLTAGE"
+      }
+    ]
   },
   {
     "req_id": "SYS.2-BMS-003",
@@ -36,7 +82,30 @@
       "comparison": "<",
       "expected_fault": "ERR_UNDERVOLTAGE",
       "expected_contactor_state": false
-    }
+    },
+    "scenarios": [
+      {
+        "name": "nominal_safe_voltage",
+        "input_voltage": 3.60,
+        "expected_state": "NORMAL",
+        "expected_contactor": true,
+        "expected_fault": null
+      },
+      {
+        "name": "boundary_exact_threshold",
+        "input_voltage": 2.50,
+        "expected_state": "NORMAL",
+        "expected_contactor": true,
+        "expected_fault": null
+      },
+      {
+        "name": "fault_under_voltage",
+        "input_voltage": 2.40,
+        "expected_state": "FAULT",
+        "expected_contactor": false,
+        "expected_fault": "ERR_UNDERVOLTAGE"
+      }
+    ]
   },
   {
     "req_id": "SYS.2-BMS-004",
@@ -49,6 +118,32 @@
       "comparison": "and",
       "expected_fault": "ERR_CRITICAL_THERMAL_CAN_FAULT",
       "expected_contactor_state": false
-    }
+    },
+    "scenarios": [
+      {
+        "name": "nominal_conditions",
+        "input_temp": 45.0,
+        "can_active": true,
+        "expected_state": "NORMAL",
+        "expected_contactor": true,
+        "expected_fault": null
+      },
+      {
+        "name": "high_temp_with_can_active",
+        "input_temp": 66.0,
+        "can_active": true,
+        "expected_state": "FAULT_SHUTDOWN",
+        "expected_contactor": false,
+        "expected_fault": "ERR_OVERTEMP_CRITICAL"
+      },
+      {
+        "name": "critical_thermal_can_loss",
+        "input_temp": 66.0,
+        "can_active": false,
+        "expected_state": "FAULT_SHUTDOWN",
+        "expected_contactor": false,
+        "expected_fault": "ERR_CRITICAL_THERMAL_CAN_FAULT"
+      }
+    ]
   }
 ]

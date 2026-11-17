@@ -5,3 +5,4 @@ __pycache__/
 bms_vector_store/
 reports/
 .pytest_cache/
+verification_state.json

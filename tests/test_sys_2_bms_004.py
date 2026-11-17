@@ -1,16 +1,39 @@
 import pytest
 from src.bms_ecu import BatteryManagementECU
 
+SCENARIOS = [
+  {
+    "name": "nominal_conditions",
+    "input_temp": 45.0,
+    "can_active": True,
+    "expected_state": "NORMAL",
+    "expected_contactor": True,
+    "expected_fault": "ERR_OK"
+  },
+  {
+    "name": "high_temp_with_can_active",
+    "input_temp": 66.0,
+    "can_active": True,
+    "expected_state": "FAULT_SHUTDOWN",
+    "expected_contactor": False,
+    "expected_fault": "ERR_OVERTEMP_CRITICAL"
+  },
+  {
+    "name": "critical_thermal_can_loss",
+    "input_temp": 66.0,
+    "can_active": False,
+    "expected_state": "FAULT_SHUTDOWN",
+    "expected_contactor": False,
+    "expected_fault": "ERR_CRITICAL_THERMAL_CAN_FAULT"
+  }
+]
 
-@pytest.mark.safety_critical
-@pytest.mark.requirement("REQ_BMS_TEMP_001")
-def test_thermal_runaway_mitigation():
+@pytest.mark.requirement("SYS.2-BMS-004")
+@pytest.mark.parametrize("scenario", SCENARIOS)
+def test_thermal_runaway_mitigation(scenario):
     ecu = BatteryManagementECU()
-    
-    # Simulate high temperature and CAN bus communication loss
-    ecu.update_sensors(temperature=66.0, can_active=False)
-    
-    # Assert the expected state and attributes
-    assert ecu.state == "FAULT_SHUTDOWN"
-    assert ecu.contactor_closed is False
-    assert ecu.fault_code == "ERR_CRITICAL_THERMAL_CAN_FAULT"
+    ecu.update_sensors(scenario)
+    assert ecu.state == scenario["expected_state"]
+    assert ecu.contactor_closed == scenario["expected_contactor"]
+    expected_fault = scenario.get("expected_fault") or "ERR_OK"
+    assert ecu.fault_code == expected_fault

@@ -1,22 +1,192 @@
 {
     "SYS.2-BMS-001": {
-        "hash": "2db590104c21bcca17d71b59d49f8b43676b66dc1cb51589318e88a4b6d13d17",
+        "hash": "170c63f27e51fd588d2e58bc96d974cb2eb9087bc767381b9eb52e6fa81cd40b",
         "file": "tests/test_sys_2_bms_001.py",
-        "last_updated": "2026-11-15T16:04:46.342561"
+        "snapshot": {
+            "title": "Cell Over-Temperature Isolation",
+            "description": "The BMS ECU shall open main contactors and set fault code ERR_OVERTEMP_CRITICAL if cell temperature exceeds 60.0 degrees C.",
+            "asil": "ASIL-D",
+            "metric": "temperature",
+            "comparison": ">",
+            "threshold_value": 60.0,
+            "expected_fault": "ERR_OVERTEMP_CRITICAL",
+            "scenario_count": 7,
+            "scenario_names": [
+                "nominal_safe_temperature",
+                "boundary_exact_threshold",
+                "fault_over_temperature",
+                "below_threshold_nominal_safe",
+                "exact_threshold_boundary_edge",
+                "above_threshold_fault_trip",
+                "stateful_overtemp_fault_and_ecu_reset_recovery"
+            ],
+            "ecu_methods": [
+                "reset_ecu",
+                "set_cell_temperature",
+                "set_cell_voltage",
+                "update_control",
+                "update_sensors"
+            ],
+            "ecu_fault_codes": [
+                "ERR_CRITICAL_THERMAL_CAN_FAULT",
+                "ERR_OK",
+                "ERR_OVERTEMP_CRITICAL",
+                "ERR_OVERVOLTAGE",
+                "ERR_UNDERVOLTAGE"
+            ]
+        },
+        "last_change_status": "MODIFIED",
+        "last_change_diffs": [
+            "SHA-256 hash changed (upgraded manifest to include field-level snapshot)"
+        ],
+        "critics": {
+            "Traceability": "PASS",
+            "AST_Contract": "PASS",
+            "ISO26262_Safety": "PASS",
+            "Runtime_SelfHeal": "PASS"
+        },
+        "last_updated": "2026-11-17T14:38:57.169607"
     },
     "SYS.2-BMS-002": {
-        "hash": "357514ab44971c62e5b3d315ebb6dcdd870f055fed096407930a5d802dde2239",
+        "hash": "4807759b6a68eef81ac146fd7ebe5c074d66cf712ca2dd4bb90b442abe526b10",
         "file": "tests/test_sys_2_bms_002.py",
-        "last_updated": "2026-11-15T16:05:21.012596"
+        "snapshot": {
+            "title": "Cell Over-Voltage Protection",
+            "description": "The BMS ECU shall open main contactors and set fault code ERR_OVERVOLTAGE if cell voltage exceeds 4.25 Volts.",
+            "asil": "ASIL-C",
+            "metric": "voltage",
+            "comparison": ">",
+            "threshold_value": 4.25,
+            "expected_fault": "ERR_OVERVOLTAGE",
+            "scenario_count": 10,
+            "scenario_names": [
+                "nominal_safe_voltage",
+                "boundary_exact_threshold",
+                "fault_over_voltage",
+                "below_threshold_nominal_safe",
+                "exact_threshold_boundary_edge",
+                "above_threshold_fault_trip",
+                "stateful_debounce_single_spike_tolerated",
+                "stateful_debounce_transient_spike_recovery",
+                "stateful_debounce_two_consecutive_cycles_trip",
+                "stateful_fault_reset_recovery_to_normal"
+            ],
+            "ecu_methods": [
+                "reset_ecu",
+                "set_cell_temperature",
+                "set_cell_voltage",
+                "update_control",
+                "update_sensors"
+            ],
+            "ecu_fault_codes": [
+                "ERR_CRITICAL_THERMAL_CAN_FAULT",
+                "ERR_OK",
+                "ERR_OVERTEMP_CRITICAL",
+                "ERR_OVERVOLTAGE",
+                "ERR_UNDERVOLTAGE"
+            ]
+        },
+        "last_change_status": "MODIFIED",
+        "last_change_diffs": [
+            "SHA-256 hash changed (upgraded manifest to include field-level snapshot)"
+        ],
+        "critics": {
+            "Traceability": "PASS (Fallback)",
+            "AST_Contract": "PASS (Fallback)",
+            "ISO26262_Safety": "PASS (Fallback)",
+            "Runtime_SelfHeal": "PASS (Fallback)"
+        },
+        "last_updated": "2026-11-17T14:48:48.953598"
     },
     "SYS.2-BMS-003": {
-        "hash": "63bc59c13bbb904ab138da39f5154a2d6d307eff14c8de8b58e736aed7946111",
+        "hash": "867915ebca26266998f1ca9757f78d6aae913b099b9973ecf5b4d7b9258cbe86",
         "file": "tests/test_sys_2_bms_003.py",
-        "last_updated": "2026-11-15T16:05:56.060057"
+        "snapshot": {
+            "title": "Cell Under-Voltage Protection",
+            "description": "The BMS ECU shall open main contactors and set fault code ERR_UNDERVOLTAGE if cell voltage drops below 2.50 Volts.",
+            "asil": "ASIL-D",
+            "metric": "voltage",
+            "comparison": "<",
+            "threshold_value": 2.5,
+            "expected_fault": "ERR_UNDERVOLTAGE",
+            "scenario_count": 6,
+            "scenario_names": [
+                "nominal_safe_voltage",
+                "boundary_exact_threshold",
+                "fault_under_voltage",
+                "below_threshold_nominal_safe",
+                "exact_threshold_boundary_edge",
+                "above_threshold_fault_trip"
+            ],
+            "ecu_methods": [
+                "reset_ecu",
+                "set_cell_temperature",
+                "set_cell_voltage",
+                "update_control",
+                "update_sensors"
+            ],
+            "ecu_fault_codes": [
+                "ERR_CRITICAL_THERMAL_CAN_FAULT",
+                "ERR_OK",
+                "ERR_OVERTEMP_CRITICAL",
+                "ERR_OVERVOLTAGE",
+                "ERR_UNDERVOLTAGE"
+            ]
+        },
+        "last_change_status": "MODIFIED",
+        "last_change_diffs": [
+            "SHA-256 hash changed (upgraded manifest to include field-level snapshot)"
+        ],
+        "critics": {
+            "Traceability": "PASS",
+            "AST_Contract": "PASS",
+            "ISO26262_Safety": "PASS",
+            "Runtime_SelfHeal": "PASS"
+        },
+        "last_updated": "2026-11-17T14:51:29.674974"
     },
     "SYS.2-BMS-004": {
-        "hash": "51ad4b9b56946b193d1a4b40b14b64a5ec646d703a1dfc82f4fef390f1344da1",
+        "hash": "ff92537ac56d21548cf1d6883763f32fae43cc38dbfa5f2f44ea1996f04584b1",
         "file": "tests/test_sys_2_bms_004.py",
-        "last_updated": "2026-11-15T16:06:37.371361"
+        "snapshot": {
+            "title": "Thermal Runaway Mitigation under CAN Bus Communication Loss",
+            "description": "The BMS shall isolate the high-voltage main contactors within 50ms and trigger active coolant flooding if cell temperature exceeds 65.0 \u00b0C concurrently with a loss of CAN bus heartbeat (communication timeout > 100ms).",
+            "asil": "ASIL-D",
+            "metric": "temperature_and_can_status",
+            "comparison": "and",
+            "threshold_value": "temp > 65.0 and can_active == False",
+            "expected_fault": "ERR_CRITICAL_THERMAL_CAN_FAULT",
+            "scenario_count": 3,
+            "scenario_names": [
+                "nominal_conditions",
+                "high_temp_with_can_active",
+                "critical_thermal_can_loss"
+            ],
+            "ecu_methods": [
+                "reset_ecu",
+                "set_cell_temperature",
+                "set_cell_voltage",
+                "update_control",
+                "update_sensors"
+            ],
+            "ecu_fault_codes": [
+                "ERR_CRITICAL_THERMAL_CAN_FAULT",
+                "ERR_OK",
+                "ERR_OVERTEMP_CRITICAL",
+                "ERR_OVERVOLTAGE",
+                "ERR_UNDERVOLTAGE"
+            ]
+        },
+        "last_change_status": "MODIFIED",
+        "last_change_diffs": [
+            "SHA-256 hash changed (upgraded manifest to include field-level snapshot)"
+        ],
+        "critics": {
+            "Traceability": "PASS",
+            "AST_Contract": "PASS",
+            "ISO26262_Safety": "PASS",
+            "Runtime_SelfHeal": "PASS"
+        },
+        "last_updated": "2026-11-17T14:53:23.746226"
     }
 }
