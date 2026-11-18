@@ -1,34 +1,36 @@
 # Use official slim Python 3.11 image
 FROM python:3.11-slim
 
-# Prevent Python from writing .pyc files and enable unbuffered logging
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
+# Prevent Python from writing .pyc files, enable unbuffered logging, and set PYTHONPATH
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app
 
 # Set workspace directory
 WORKDIR /app
 
-# Install system dependencies required for compilation/C++ tools (e.g., ChromaDB dependencies)
+# Install curl for healthchecks/diagnostics (no heavy C++ build-essential needed without ChromaDB)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
     curl \
     && rm -rf /lib/apt/lists/*
 
 # Copy dependency specifications first to leverage Docker layer caching
 COPY requirements.txt .
 
-# Install Python packages
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Python packages + ensure Phase 3/4 verification packages are present
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt \
+    pytest pytest-html pydantic langgraph langchain-ollama
 
-# Copy application source code and assets into the container
+# Copy application source code, requirements SSOT, state manifest, and test assets
 COPY src/ ./src/
-COPY .env .env
+COPY aspice_requirements.json ./aspice_requirements.json
+COPY verification_stat[e].json ./
+COPY pytest.in[i] ./
+COPY tests/ ./tests/
 
-# Create persistent mount points for chroma_db, tests, and reports
-RUN mkdir -p chroma_db tests reports
+# Create persistent directories for tests and partitioned/compliance reports
+RUN mkdir -p tests reports/passed reports/failed reports/compliance
 
-# Copy chroma_db directory if it exists on host (non-blocking wildcards)
-COPY chroma_d[b] ./chroma_db/
-
-# Default execution entrypoint running the LangGraph agent graph
-CMD ["python", "src/agent_graph.py"]
+# Default execution entrypoint running the Phase 4 Agentic V&V Orchestrator
+CMD ["python", "src/run_pipeline.py"]

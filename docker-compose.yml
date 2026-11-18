@@ -5,10 +5,16 @@ services:
       dockerfile: Dockerfile
     container_name: bms_ecu_agent_pipeline
     env_file:
-      - .env
+      - path: .env
+        required: false
+    environment:
+      - OLLAMA_HOST=http://host.docker.internal:11434
+      - PYTHONPATH=/app
     volumes:
-      # Mount tests/ and reports/ to persist generated test files and HTML reports on host
+      # Mount tests/, reports/, and verification_state.json to persist artifacts & SUP.10 snapshots on host
       - ./tests:/app/tests
       - ./reports:/app/reports
-      - ./chroma_db:/app/chroma_db
+      - ./verification_state.json:/app/verification_state.json
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: "no"
