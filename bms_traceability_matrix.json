@@ -1,132 +1,37 @@
 [
     {
         "requirement_id": "SYS.2-BMS-001",
-        "test_name": "tests/test_sys_2_bms_001.py::test_cell_over_temperature_isolation[scenario0]",
+        "test_name": "tests/test_sys_2_bms_001.py::test_sys_2_bms_001[nominal_safe_temperature]",
         "outcome": "passed"
     },
     {
         "requirement_id": "SYS.2-BMS-001",
-        "test_name": "tests/test_sys_2_bms_001.py::test_cell_over_temperature_isolation[scenario1]",
+        "test_name": "tests/test_sys_2_bms_001.py::test_sys_2_bms_001[boundary_exact_threshold]",
         "outcome": "passed"
     },
     {
         "requirement_id": "SYS.2-BMS-001",
-        "test_name": "tests/test_sys_2_bms_001.py::test_cell_over_temperature_isolation[scenario2]",
+        "test_name": "tests/test_sys_2_bms_001.py::test_sys_2_bms_001[fault_over_temperature]",
         "outcome": "passed"
     },
     {
         "requirement_id": "SYS.2-BMS-001",
-        "test_name": "tests/test_sys_2_bms_001.py::test_cell_over_temperature_isolation[scenario3]",
+        "test_name": "tests/test_sys_2_bms_001.py::test_sys_2_bms_001[below_threshold_nominal_safe]",
+        "outcome": "failed"
+    },
+    {
+        "requirement_id": "SYS.2-BMS-001",
+        "test_name": "tests/test_sys_2_bms_001.py::test_sys_2_bms_001[exact_threshold_boundary_edge]",
+        "outcome": "failed"
+    },
+    {
+        "requirement_id": "SYS.2-BMS-001",
+        "test_name": "tests/test_sys_2_bms_001.py::test_sys_2_bms_001[above_threshold_fault_trip]",
         "outcome": "passed"
     },
     {
         "requirement_id": "SYS.2-BMS-001",
-        "test_name": "tests/test_sys_2_bms_001.py::test_cell_over_temperature_isolation[scenario4]",
-        "outcome": "passed"
-    },
-    {
-        "requirement_id": "SYS.2-BMS-001",
-        "test_name": "tests/test_sys_2_bms_001.py::test_cell_over_temperature_isolation[scenario5]",
-        "outcome": "passed"
-    },
-    {
-        "requirement_id": "SYS.2-BMS-001",
-        "test_name": "tests/test_sys_2_bms_001.py::test_cell_over_temperature_isolation[scenario6]",
-        "outcome": "passed"
-    },
-    {
-        "requirement_id": "SYS.2-BMS-002",
-        "test_name": "tests/test_sys_2_bms_002.py::test_sys_2_bms_002[nominal_safe_voltage]",
-        "outcome": "passed"
-    },
-    {
-        "requirement_id": "SYS.2-BMS-002",
-        "test_name": "tests/test_sys_2_bms_002.py::test_sys_2_bms_002[boundary_exact_threshold]",
-        "outcome": "passed"
-    },
-    {
-        "requirement_id": "SYS.2-BMS-002",
-        "test_name": "tests/test_sys_2_bms_002.py::test_sys_2_bms_002[fault_over_voltage]",
-        "outcome": "passed"
-    },
-    {
-        "requirement_id": "SYS.2-BMS-002",
-        "test_name": "tests/test_sys_2_bms_002.py::test_sys_2_bms_002[below_threshold_nominal_safe]",
-        "outcome": "passed"
-    },
-    {
-        "requirement_id": "SYS.2-BMS-002",
-        "test_name": "tests/test_sys_2_bms_002.py::test_sys_2_bms_002[exact_threshold_boundary_edge]",
-        "outcome": "passed"
-    },
-    {
-        "requirement_id": "SYS.2-BMS-002",
-        "test_name": "tests/test_sys_2_bms_002.py::test_sys_2_bms_002[above_threshold_fault_trip]",
-        "outcome": "passed"
-    },
-    {
-        "requirement_id": "SYS.2-BMS-002",
-        "test_name": "tests/test_sys_2_bms_002.py::test_sys_2_bms_002[stateful_debounce_single_spike_tolerated]",
-        "outcome": "passed"
-    },
-    {
-        "requirement_id": "SYS.2-BMS-002",
-        "test_name": "tests/test_sys_2_bms_002.py::test_sys_2_bms_002[stateful_debounce_transient_spike_recovery]",
-        "outcome": "passed"
-    },
-    {
-        "requirement_id": "SYS.2-BMS-002",
-        "test_name": "tests/test_sys_2_bms_002.py::test_sys_2_bms_002[stateful_debounce_two_consecutive_cycles_trip]",
-        "outcome": "passed"
-    },
-    {
-        "requirement_id": "SYS.2-BMS-002",
-        "test_name": "tests/test_sys_2_bms_002.py::test_sys_2_bms_002[stateful_fault_reset_recovery_to_normal]",
-        "outcome": "passed"
-    },
-    {
-        "requirement_id": "SYS.2-BMS-003",
-        "test_name": "tests/test_sys_2_bms_003.py::test_cell_under_voltage_protection[scenario0]",
-        "outcome": "passed"
-    },
-    {
-        "requirement_id": "SYS.2-BMS-003",
-        "test_name": "tests/test_sys_2_bms_003.py::test_cell_under_voltage_protection[scenario1]",
-        "outcome": "passed"
-    },
-    {
-        "requirement_id": "SYS.2-BMS-003",
-        "test_name": "tests/test_sys_2_bms_003.py::test_cell_under_voltage_protection[scenario2]",
-        "outcome": "passed"
-    },
-    {
-        "requirement_id": "SYS.2-BMS-003",
-        "test_name": "tests/test_sys_2_bms_003.py::test_cell_under_voltage_protection[scenario3]",
-        "outcome": "passed"
-    },
-    {
-        "requirement_id": "SYS.2-BMS-003",
-        "test_name": "tests/test_sys_2_bms_003.py::test_cell_under_voltage_protection[scenario4]",
-        "outcome": "passed"
-    },
-    {
-        "requirement_id": "SYS.2-BMS-003",
-        "test_name": "tests/test_sys_2_bms_003.py::test_cell_under_voltage_protection[scenario5]",
-        "outcome": "passed"
-    },
-    {
-        "requirement_id": "SYS.2-BMS-004",
-        "test_name": "tests/test_sys_2_bms_004.py::test_thermal_runaway_mitigation[scenario0]",
-        "outcome": "passed"
-    },
-    {
-        "requirement_id": "SYS.2-BMS-004",
-        "test_name": "tests/test_sys_2_bms_004.py::test_thermal_runaway_mitigation[scenario1]",
-        "outcome": "passed"
-    },
-    {
-        "requirement_id": "SYS.2-BMS-004",
-        "test_name": "tests/test_sys_2_bms_004.py::test_thermal_runaway_mitigation[scenario2]",
+        "test_name": "tests/test_sys_2_bms_001.py::test_sys_2_bms_001[stateful_overtemp_fault_and_ecu_reset_recovery]",
         "outcome": "passed"
     }
 ]

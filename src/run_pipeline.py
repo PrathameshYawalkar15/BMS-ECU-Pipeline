@@ -11,6 +11,12 @@ from langgraph.graph import StateGraph, END
 from langchain_ollama import ChatOllama
 from pydantic import ValidationError
 
+# Force UTF-8 encoding on Windows consoles and piped subprocesses
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 # Ensure project root and src/ are on sys.path regardless of where script is invoked
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(CURRENT_DIR) if os.path.basename(CURRENT_DIR) == "src" else CURRENT_DIR
